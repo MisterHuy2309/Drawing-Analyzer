@@ -1,51 +1,29 @@
-# 🏗️ AI Drawing Analyzer - Backend API (FastAPI & PostgreSQL)
+# 🏗️ AI Drawing Analyzer - Fullstack Setup & API Documentation
 
-Hệ thống Backend phục vụ phân tích bản vẽ kết cấu kỹ thuật: tiếp nhận tài liệu PDF, bóc tách trang nền (Background Processing), render ảnh chất lượng cao (200 DPI), tạo thumbnail, trích xuất tọa độ Bounding Box văn bản và lưu trữ trong PostgreSQL.
+Hệ thống phân tích bản vẽ kết cấu kỹ thuật: tiếp nhận hồ sơ PDF, bóc tách trang nền (Background Tasks), render ảnh độ phân giải cao (200 DPI), tạo thumbnail, trích xuất tọa độ Bounding Box văn bản và lưu trữ trong cơ sở dữ liệu PostgreSQL.
 
----
-
-## ⚡ 1. Thông tin kết nối nhanh dành cho Frontend (FE)
-
-- **Localhost:** http://localhost:8000
-- **Mạng nội bộ (LAN):** http://<IP_MAY_BACKEND>:8000 (gõ ipconfig trên máy Backend để lấy IPv4)
-- **Tài liệu Swagger UI tương tác trực tiếp:** http://localhost:8000/docs
-- **Tài liệu ReDoc:** http://localhost:8000/redoc
-
-> **CORS:** Đã kích hoạt cho localhost:3000, localhost:5173, 127.0.0.1:3000, 127.0.0.1:5173. Thư mục /static đã cấu hình Access-Control-Allow-Origin: * chống lỗi Tainted Canvas.
+- **Sơ đồ thiết kế Database (DB Diagram):** [Xem tại dbdiagram.io](https://dbdiagram.io/d/Building-6ad58bdafe5cc8bda2f11289)
 
 ---
 
-## 🚀 2. Dữ liệu mẫu kiểm thử có sẵn (Không cần upload lại)
+## 💻 Dành cho Frontend: Hướng dẫn Clone và Khởi chạy toàn bộ hệ thống
 
-Hồ sơ 27 trang thực tế đã qua bóc tách hoàn chỉnh:
-- **project_id**: 1
-- **drawing_id**: 1
-- **version_id**: 1
+Khi clone repository về máy cục bộ, các bạn làm theo các bước tuần tự bên dưới để dựng Database, chạy Backend và kết nối Frontend.
 
-### FE 2 (Canvas & Sidebar Navigation):
-1. **Lấy danh sách 27 trang (kích thước, URL ảnh HD, thumbnail):**
-   GET /api/v1/drawings/versions/1/pages
-
-   **Cách hiển thị ảnh:** Ghép URL Base của BE với image_url:
-   http://localhost:8000/static/projects/proj_1_draw_1/pages/page_001/image.png
-
-2. **Lấy danh sách Bounding Box chữ phục vụ Canvas Overlay:**
-   GET /api/v1/drawings/pages/1/layout
+### Yêu cầu cài đặt sẵn trên máy:
+1. **Docker Desktop** (Bắt buộc phải bật Docker lên trước khi chạy lệnh).
+2. **Python 3.12+** và công cụ quản lý gói **Poetry** (`pip install poetry`).
+3. **Node.js** (v18 trở lên).
 
 ---
 
-## 📤 3. Luồng tích hợp Upload file mới (FE 1 - Dashboard & Upload Modal)
+### PHẦN 1: KHỞI CHẠY DATABASE & BACKEND (Terminal 1)
 
-[FE: Upload File] -> [BE: Trả về job_id (202)] -> [FE: Polling tiến độ %] -> [FE: Hoàn tất -> Mở Canvas]
-
-1. **Upload PDF:** POST /api/v1/drawings/projects/{project_id}/upload (multipart/form-data, trường file).
-2. **Polling tiến độ ngầm:** GET /api/v1/drawings/jobs/{job_id}/status mỗi 1-2 giây cho đến khi status == 'completed'.
-
----
-
-## 🛠️ 4. Khởi chạy Backend cục bộ
-
+#### Bước 1: Khởi động Database PostgreSQL qua Docker
+Mở cửa sổ Terminal tại thư mục gốc dự án (`Building/`):
+```powershell
+# Bật container PostgreSQL chạy ngầm
 docker compose up -d
-cd backend
-poetry install
-python -m poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Kiểm tra container đã UP thành công (port 5434 -> 5432)
+docker ps
