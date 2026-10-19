@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C/C++ extensions
+*.so
+
+# Môi trường ảo (Virtual Environments)
+.venv/
+venv/
+ENV/
+env/
+
+# Biến môi trường & bí mật (BẮT BUỘC CHẶN)
+.env
+.env.local
+*.env
+
+# Thư mục lưu trữ file người dùng và file tạm
+storage/temp/*
+!storage/temp/.gitkeep
+storage/projects/*
+!storage/projects/.gitkeep
+
+# File PDF bản vẽ test nặng (tránh làm phình dung lượng git)
+*.pdf
+
+# Cache của công cụ test & lint
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Hệ điều hành
+.DS_Store
+Thumbs.db
+
+# File script tạm đã dùng khi debug
+test_db.py
+init_db.py

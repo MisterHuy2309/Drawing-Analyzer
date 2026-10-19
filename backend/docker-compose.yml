@@ -1,0 +1,16 @@
+services:
+  drawing_postgres:
+    image: postgres:16-alpine
+    container_name: drawing_analyzer_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: drawing_analyzer
+    ports:
+      - "5434:5432"
+    volumes:
+      - drawing_pgdata:/var/lib/postgresql/data
+
+volumes:
+  drawing_pgdata:
