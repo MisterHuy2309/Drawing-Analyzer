@@ -5,6 +5,9 @@ from starlette.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.storage import BASE_STORAGE_DIR
 from app.api.v1.drawings import router as drawings_router
+from app.api.v1.projects import router as projects_router  
+from app.api.v1.components import router as components_router    
+from app.api.v1.discrepancies import router as discrepancies_router
 
 app = FastAPI(
     title="AI Drawing Analyzer API",
@@ -46,13 +49,17 @@ class CORSStaticFiles(StaticFiles):
 app.mount("/static", CORSStaticFiles(directory=str(BASE_STORAGE_DIR)), name="static")
 
 # 4. Đăng ký các Router
-app.include_router(drawings_router, prefix="/api/v1")
+## app.include_router(drawings_router, prefix="/api/v1")
+app.include_router(projects_router, prefix=settings.API_V1_STR)
+app.include_router(drawings_router, prefix=settings.API_V1_STR)
+app.include_router(components_router, prefix=settings.API_V1_STR)
+app.include_router(discrepancies_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["Health"])
 async def root():
     return {
         "status": "online",
-        "message": "AI Drawing Analyzer API is running.",
+        "message": "AI Drawing Analyzer API is running and Oke nhé Long Chun Thanks.",
         "docs": "/docs",
     }

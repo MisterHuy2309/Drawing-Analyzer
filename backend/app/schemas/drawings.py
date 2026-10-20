@@ -68,3 +68,13 @@ class PageLayoutResponse(BaseModel):
     height: float
     blocks_count: int
     blocks: List[TextBlockSchema]
+    table_rects_count: int = 0
+    table_rects: List[List[float]] = []
+
+class PageClassificationUpdate(BaseModel):
+    page_type: str = Field(
+        ...,
+        description="Loại trang: 'floor_plan' (Mặt bằng), 'schedule_table' (Bảng thống kê/chi tiết), 'index' (Mục lục), 'general_note' (Ghi chú chung)",
+    )
+    confidence_score: Optional[float] = Field(None, ge=0.0, le=1.0)
+    metadata_extracted: Optional[Dict[str, Any]] = None   

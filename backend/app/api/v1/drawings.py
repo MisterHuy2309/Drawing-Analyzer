@@ -3,13 +3,14 @@ from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.schemas.drawings import PageClassificationUpdate
 from app.core.storage import ProjectStorage
-from app.db import get_db
+from app.core.database import get_db
 from app.models.drawings import Drawing, DrawingPage, DrawingVersion, ProcessingJob, Project
 from app.schemas.drawings import (
     DrawingPageResponse,
     DrawingPagesListResponse,
+    PageClassificationUpdate,
     JobStatusResponse,
     PageLayoutResponse,
     UploadDrawingResponse,
@@ -171,18 +172,57 @@ async def get_drawing_pages(version_id: int, db: AsyncSession = Depends(get_db))
 
 @router.get("/pages/{page_id}/layout", response_model=PageLayoutResponse)
 async def get_page_layout(page_id: int, db: AsyncSession = Depends(get_db)):
-    """Lấy dữ liệu bounding box văn bản của một trang phục vụ lớp phủ Canvas."""
+    """Trả về tọa độ khối chữ và khung vector hình học của trang (cho FE Overlay & AI)."""
     page = await db.get(DrawingPage, page_id)
     if not page:
-        raise HTTPException(status_code=404, detail="Không tìm thấy trang bản vẽ.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy trang bản vẽ với ID: {page_id}",
+        )
 
-    layout = page.layout_data or {}
-    blocks = layout.get("blocks", [])
+    layout_data = page.layout_data or {}
+    blocks = [TextBlockSchema(**b) for b in layout_data.get("blocks", [])]
 
     return PageLayoutResponse(
         page_number=page.page_number,
-        width=float(page.width),
-        height=float(page.height),
+        width=page.width,
+        height=page.height,
         blocks_count=len(blocks),
         blocks=blocks,
+        table_rects_count=layout_data.get("table_rects_count", 0),
+        table_rects=layout_data.get("table_rects", []),
     )
+
+@router.patch("/pages/{page_id}/classify", response_model=DrawingPageResponse)
+async def update_page_classification(
+    page_id: int,
+    payload: PageClassificationUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Dành cho AI Pipeline Ngày 2:
+    Cập nhật nhãn loại trang (floor_plan, schedule_table, index...) và metadata bóc tách.
+    """
+    page = await db.get(DrawingPage, page_id)
+    if not page:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy trang bản vẽ với ID: {page_id}",
+        )
+
+    # Cập nhật loại trang
+    page.page_type = payload.page_type
+
+    # Cập nhật thêm thông tin metadata hoặc confidence score từ AI vào layout_data
+    current_layout = dict(page.layout_data or {})
+    if payload.metadata_extracted or payload.confidence_score is not None:
+        current_layout["ai_classification"] = {
+            "page_type": payload.page_type,
+            "confidence_score": payload.confidence_score,
+            "metadata": payload.metadata_extracted or {},
+        }
+        page.layout_data = current_layout
+
+    await db.commit()
+    await db.refresh(page)
+    return page

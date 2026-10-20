@@ -1,11 +1,5 @@
-from app.db import Base
-from app.models.drawings import (
-    Project,
-    Drawing,
-    DrawingVersion,
-    DrawingPage,
-    ProcessingJob,
-)
+from app.models.drawings import Base, Project, Drawing, DrawingVersion, DrawingPage, ProcessingJob
+from app.models.components import PageAnnotation, DrawingComponent, Discrepancy
 
 __all__ = [
     "Base",
@@ -14,4 +8,7 @@ __all__ = [
     "DrawingVersion",
     "DrawingPage",
     "ProcessingJob",
+    "PageAnnotation",
+    "DrawingComponent",
+    "Discrepancy",
 ]
